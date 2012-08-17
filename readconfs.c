@@ -23,8 +23,7 @@ void read_keys_file() {
                 strncpy(dummy, strstr(buffer, " ")+1, strlen(strstr(buffer, " ")+1)-1);
                 dummy2 = strdup(dummy);
                 cmds[cmdcount].name = strsep(&dummy2, ";");
-                cmds[cmdcount].list[0] = strsep(&dummy2, ";");
-                i=1;
+                i=0;
                 while(dummy2) {
                     cmds[cmdcount].list[i] = strsep(&dummy2, ";");
                     if(strcmp(cmds[cmdcount].list[i], "NULL") == 0) break;
@@ -89,8 +88,7 @@ void read_keys_file() {
                     dummy4 = strsep(&dummy2, ";");
                     for(i=0;i<cmdcount;i++) {
                         if(strcmp(dummy4, cmds[i].name) == 0) {
-                            keys[keycount].arg.com[0] = cmds[i].list[0];
-                            j=1;
+                            j=0;
                             while(strcmp(cmds[i].list[j], "NULL") != 0) {
                                 keys[keycount].arg.com[j] = cmds[i].list[j];
                                 j++;

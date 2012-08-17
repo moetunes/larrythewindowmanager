@@ -868,13 +868,13 @@ void quit() {
         for(c=head;c;c=c->next)
             kill_client_now(c->win);
     }
+    logger("\033[0;34mYou Quit : Bye!");
     XClearWindow(dis, root);
     XUngrabKey(dis, AnyKey, AnyModifier, root);
     for(i=0;i<7;i++)
         XFreeGC(dis, theme[i].gc);
     XSync(dis, False);
     XSetInputFocus(dis, root, RevertToPointerRoot, CurrentTime);
-    logger("\033[0;34mYou Quit : Bye!");
     bool_quit = 1;
 }
 
