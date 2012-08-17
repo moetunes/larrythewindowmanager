@@ -1,21 +1,24 @@
-CFLAGS+= -Wall
+CFLAGS+= -g -std=c99 -pedantic -Wall
 LDADD+= -lX11
 LDFLAGS=
-EXEC=larry
+EXEC=larrythewindowmanager
 
 PREFIX?= /usr/local
 BINDIR?= $(PREFIX)/bin
 
 CC=gcc
 
-all: $(EXEC)
+SRC = larry.c
+OBJ = ${SRC:.c=.o}
 
-larry: larry.o
-	$(CC) $(LDFLAGS) -s -Os -o $@ $+ $(LDADD)
+all: $(EXEC)
+${EXEC}: ${OBJ}
+
+	$(CC) $(LDFLAGS) -s -o $@ ${OBJ} $(LDADD)
 
 install: all
-	install -Dm 755 larry $(DESTDIR)$(BINDIR)/larry
+	install -Dm 755 larrythewindowmanager $(DESTDIR)$(BINDIR)/larrythewindowmanager
 
 clean:
-	rm -fv larry *.o
+	rm -fv larrythewindowmanager *.o
 
