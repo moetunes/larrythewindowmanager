@@ -128,6 +128,7 @@ static void start();
 static void swap_master();
 static void switch_mode(const Arg arg);
 static void tile();
+static void toggle_bar();
 static void unmapnotify(XEvent *e);    // Thunderbird's write window just unmaps...
 static void update_config();
 static void update_current();
@@ -139,7 +140,7 @@ static Display *dis;
 static unsigned int attachaside, bdw, bool_quit, clicktofocus, current_desktop;
 static unsigned int followmouse, mode, msize, previous_desktop, DESKTOPS;
 static int growth, sh, sw, master_size, nmaster;
-static unsigned int screen, bar_height, doinfo;
+static unsigned int screen, bar_height, BAR_HEIGHT, doinfo;
 static unsigned int topbar, top_stack, keycount, cmdcount, wspccount;
 static int ufalpha;
 static int xerror(Display *dis, XErrorEvent *ee);
@@ -168,7 +169,7 @@ static void (*events[LASTEvent])(XEvent *e) = {
 // Desktop array
 static desktop desktops[10];
 static Theme theme[2];
-static key keys[80];
+static key keys[100];
 static Commands cmds[50];
 static WORKSPACE wspc[20];
 #include "readconfs.c"
@@ -592,6 +593,20 @@ void resize_stack(const Arg arg) {
     }
 }
 
+
+void toggle_bar() {
+    if(BAR_HEIGHT > 0) {
+        if(bar_height >0) {
+            sh += bar_height;
+            bar_height = 0;
+        } else {
+            bar_height = BAR_HEIGHT;
+            sh -= bar_height;
+        }
+        tile();
+    }
+}
+
 /* ********************** Keyboard Management ********************** */
 void grabkeys() {
     unsigned int i;
@@ -916,7 +931,7 @@ void setup() {
     bdw = 2;
     attachaside = followmouse = 1;
     clicktofocus = mode = top_stack = 0;
-    topbar = bar_height = doinfo = 0;
+    topbar = BAR_HEIGHT = bar_height = doinfo = 0;
 
     char *loc;
     loc = setlocale(LC_ALL, "");

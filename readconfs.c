@@ -82,6 +82,7 @@ void read_keys_file() {
                 else if(strcmp(dummy3, "next_win") == 0) keys[keycount].myfunction = next_win;
                 else if(strcmp(dummy3, "prev_win") == 0) keys[keycount].myfunction = prev_win;
                 else if(strcmp(dummy3, "swap_master") == 0) keys[keycount].myfunction = swap_master;
+                else if(strcmp(dummy3, "toggle_bar") == 0) keys[keycount].myfunction = toggle_bar;
                 else if(strcmp(dummy3, "update_config") == 0) keys[keycount].myfunction = update_config;
                 else if(strcmp(dummy3, "spawn") == 0) {
                     keys[keycount].myfunction = spawn;
@@ -98,7 +99,6 @@ void read_keys_file() {
                     }
                 } else continue;
                 keycount++;
-                continue;
             }
         }
     }
@@ -107,8 +107,8 @@ void read_keys_file() {
 
 void read_rcfile() {
     FILE *rcfile ;
-    char buffer[256]; /* Way bigger that neccessary */
-    char dummy[256];
+    char buffer[80]; /* Way bigger that neccessary */
+    char dummy[80];
     char *dummy2, *dummy3;
     int i; wspccount = 0;
 
@@ -147,6 +147,7 @@ void read_rcfile() {
                 msize = atoi(strstr(buffer, " ")+1);
             } else if(strstr(buffer, "BAR_HEIGHT" ) != NULL) {
                 bar_height = atoi(strstr(buffer, " ")+1);
+                BAR_HEIGHT = bar_height;
             } else if(strstr(buffer, "TOPBAR" ) != NULL) {
                 topbar = atoi(strstr(buffer, " ")+1);
             } else if(strstr(buffer, "ATTACHASIDE" ) != NULL) {
