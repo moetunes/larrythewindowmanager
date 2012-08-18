@@ -96,7 +96,7 @@ void read_keys_file() {
                             break;
                         }
                     }
-                }
+                } else continue;
                 keycount++;
                 continue;
             }
@@ -159,9 +159,6 @@ void read_rcfile() {
                 clicktofocus = atoi(strstr(buffer, " ")+1);
             } else if(strstr(buffer, "DEFAULTMODE" ) != NULL) {
                 mode = atoi(strstr(buffer, " ")+1);
-                for(i=0;i<DESKTOPS;i++)
-                    if(desktops[i].head == NULL)
-                        desktops[i].mode = mode;
             } else if(strstr(buffer, "WORKSPACE" ) != NULL) {
                 strncpy(dummy, strstr(buffer, " ")+1, strlen(strstr(buffer, " ")+1)-1);
                 dummy2 = strdup(dummy);
@@ -194,6 +191,7 @@ void update_config() {
     unsigned int i, old_desktops = DESKTOPS, tmp = current_desktop;
     
     XUngrabKey(dis, AnyKey, AnyModifier, root);
+    memset(wspc, 0, wspccount * sizeof(WORKSPACE));
     read_rcfile();
     if(DESKTOPS < old_desktops) {
         save_desktop(current_desktop);
@@ -209,16 +207,21 @@ void update_config() {
         select_desktop(tmp);
         if(current_desktop > (DESKTOPS-1)) change_desktop(a);
     }
+    if(old_desktops < DESKTOPS)
+        for(i=old_desktops;i<DESKTOPS;i++)
+            init_desks(i);
     for(i=0;i<DESKTOPS;i++) {
         desktops[i].master_size = (sw*msize)/100;
+        if(desktops[i].head == NULL)
+            desktops[i].mode = mode;
     }
     select_desktop(current_desktop);
     Arg a = {.i = mode}; switch_mode(a);
     tile();
     update_current();
+    update_info();
 
     memset(keys, 0, keycount * sizeof(key));
     memset(cmds, 0, cmdcount * sizeof(Commands));
-    memset(wspc, 0, wspccount * sizeof(WORKSPACE));
     grabkeys();
 }

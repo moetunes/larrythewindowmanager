@@ -24,7 +24,6 @@
 #define _BSD_SOURCE
 #include <X11/Xlib.h>
 #include <X11/XKBlib.h>
-//#include <X11/keysym.h>
 /* If you have a multimedia keyboard uncomment the following line */
 //#include <X11/XF86keysym.h>
 #include <X11/Xproto.h>
@@ -63,16 +62,13 @@ struct client{
 
     // The window
     Window win;
-    unsigned int x, y, width, height, order;
+    unsigned int order;
 };
 
 typedef struct desktop desktop;
 struct desktop{
-    unsigned int master_size;
-    unsigned int mode, growth, numwins, nmaster;
-    client *head;
-    client *current;
-    client *transient;
+    unsigned int master_size, mode, growth, numwins, nmaster;
+    client *head, *current, *transient;
 };
 
 typedef struct {
@@ -102,6 +98,7 @@ static void destroynotify(XEvent *e);
 static void follow_client_to_desktop(const Arg arg);
 static unsigned long getcolor(const char* color);
 static void grabkeys();
+static void init_desks(unsigned int ws);
 static void keypress(XEvent *e);
 static void kill_client();
 static void kill_client_now(Window w);
@@ -893,6 +890,17 @@ void logger(const char* e) {
     fprintf(stderr,"\n\033[0;34m:: larry says : %s \033[0;m\n", e);
 }
 
+void init_desks(unsigned int ws) {
+    desktops[ws].master_size = master_size;
+    desktops[ws].nmaster = 0;
+    desktops[ws].mode = mode;
+    desktops[ws].growth = 0;
+    desktops[ws].numwins = 0;
+    desktops[ws].head = NULL;
+    desktops[ws].current = NULL;
+    desktops[ws].transient = NULL;
+}
+
 void setup() {
     // Install a signal
     sigchld(0);
@@ -931,15 +939,8 @@ void setup() {
 
     // Set up all desktop
     unsigned int i;
-    for(i=0;i<TABLENGTH(desktops);++i) {
-        desktops[i].master_size = master_size;
-        desktops[i].nmaster = 0;
-        desktops[i].mode = mode;
-        desktops[i].growth = 0;
-        desktops[i].numwins = 0;
-        desktops[i].head = NULL;
-        desktops[i].current = NULL;
-        desktops[i].transient = NULL;
+    for(i=0;i<DESKTOPS;++i) {
+        init_desks(i);
     }
 
     // Select first dekstop by default
