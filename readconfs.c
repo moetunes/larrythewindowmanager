@@ -8,9 +8,9 @@ void read_keys_file() {
     char dummy[256];
     char *dummy2, *dummy3, *dummy4;
     keycount = cmdcount = 0;
-    int i, j;
+    unsigned int i, j;
 
-    keyfile = fopen( KEY_FILE, "r" ) ;
+    keyfile = fopen( KEY_FILE, "rb" ) ;
     if ( keyfile == NULL ) {
         fprintf(stderr, "\033[0;34m snapwm : \033[0;31m Couldn't find %s\033[0m \n" ,KEY_FILE);
         return;
@@ -27,9 +27,9 @@ void read_keys_file() {
                 while(dummy2) {
                     cmds[cmdcount].list[i] = strsep(&dummy2, ";");
                     if(strcmp(cmds[cmdcount].list[i], "NULL") == 0) break;
-                    i++;
+                    ++i;
                 }
-                cmdcount++;
+                ++cmdcount;
                 continue;
             } else if(strstr(buffer, "KEY" ) != NULL) {
                 strncpy(dummy, strstr(buffer, " ")+1, strlen(strstr(buffer, " ")+1));
@@ -87,18 +87,18 @@ void read_keys_file() {
                 else if(strcmp(dummy3, "spawn") == 0) {
                     keys[keycount].myfunction = spawn;
                     dummy4 = strsep(&dummy2, ";");
-                    for(i=0;i<cmdcount;i++) {
+                    for(i=0;i<cmdcount;++i) {
                         if(strcmp(dummy4, cmds[i].name) == 0) {
                             j=0;
                             while(strcmp(cmds[i].list[j], "NULL") != 0) {
                                 keys[keycount].arg.com[j] = cmds[i].list[j];
-                                j++;
+                                ++j;
                             }
                             break;
                         }
                     }
                 } else continue;
-                keycount++;
+                ++keycount;
             }
         }
     }
@@ -110,7 +110,7 @@ void read_rcfile() {
     char buffer[80]; /* Way bigger that neccessary */
     char dummy[80];
     char *dummy2, *dummy3;
-    int i; wspccount = 0;
+    unsigned int i; wspccount = 0;
 
     rcfile = fopen( RC_FILE, "r" ) ;
     if ( rcfile == NULL ) {
@@ -126,7 +126,7 @@ void read_rcfile() {
                 strncpy(dummy, strstr(buffer, " ")+1, strlen(strstr(buffer, " ")+1)-1);
                 dummy[strlen(dummy)-1] = '\0';
                 dummy2 = strdup(dummy);
-                for(i=0;i<2;i++) {
+                for(i=0;i<2;++i) {
                     dummy3 = strsep(&dummy2, ";");
                     if(getcolor(dummy3) == 1) {
                         theme[i].wincolor = getcolor(defaultwincolor[i]);
@@ -166,7 +166,7 @@ void read_rcfile() {
                 wspc[wspccount].class = strsep(&dummy2, ";");
                 wspc[wspccount].desk = atoi(strsep(&dummy2, ";"));
                 wspc[wspccount].follow = atoi(strsep(&dummy2, ";"));
-                wspccount++;
+                ++wspccount;
             }
         }
         fclose(rcfile);
@@ -177,10 +177,10 @@ void read_rcfile() {
 }
 
 void set_defaults() {
-    int i;
+    unsigned int i;
 
     logger("\033[0;32m Setting default values");
-    for(i=0;i<2;i++)
+    for(i=0;i<2;++i)
         theme[i].wincolor = getcolor(defaultwincolor[i]);
 
     sh = (XDisplayHeight(dis,screen) - bdw);
@@ -197,7 +197,7 @@ void update_config() {
     if(DESKTOPS < old_desktops) {
         save_desktop(current_desktop);
         Arg a = {.i = DESKTOPS-1};
-        for(i=DESKTOPS;i<old_desktops;i++) {
+        for(i=DESKTOPS;i<old_desktops;++i) {
             select_desktop(i);
             if(head != NULL) {
                 while(desktops[current_desktop].numwins > 0) {
@@ -209,9 +209,9 @@ void update_config() {
         if(current_desktop > (DESKTOPS-1)) change_desktop(a);
     }
     if(old_desktops < DESKTOPS)
-        for(i=old_desktops;i<DESKTOPS;i++)
+        for(i=old_desktops;i<DESKTOPS;++i)
             init_desks(i);
-    for(i=0;i<DESKTOPS;i++) {
+    for(i=0;i<DESKTOPS;++i) {
         desktops[i].master_size = (sw*msize)/100;
         if(desktops[i].head == NULL)
             desktops[i].mode = mode;

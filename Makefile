@@ -14,7 +14,7 @@ OBJ = ${SRC:.c=.o}
 all: $(EXEC)
 ${EXEC}: ${OBJ}
 
-	$(CC) $(LDFLAGS) -s -o $@ ${OBJ} $(LDADD)
+	$(CC) $(LDFLAGS) -s -O2 -ffast-math -fno-unit-at-a-time -o $@ ${OBJ} $(LDADD)
 
 install: all
 	install -Dm 755 larrythewindowmanager $(DESTDIR)$(BINDIR)/larrythewindowmanager
