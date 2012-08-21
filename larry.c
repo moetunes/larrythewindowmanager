@@ -78,7 +78,7 @@ typedef struct {
 
 typedef struct {
     char *name;
-    char *list[100];
+    char *list[15];
 } Commands;
 
 typedef struct {
