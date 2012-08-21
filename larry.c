@@ -42,7 +42,7 @@
 #define TABLENGTH(X)    (sizeof(X)/sizeof(*X))
 
 typedef union {
-    char *com[256];
+    char *com[15];
     int i;
 } Arg;
 
