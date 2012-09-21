@@ -502,7 +502,7 @@ void tile() {
                 y += (sh/n)-(growth/(n-1));
             }
         } else { /* Fullscreen */
-                XMoveResizeWindow(dis,current->win,0,y,sw+2*bdw,sh+2*bdw);
+                XMoveResizeWindow(dis,current->win,0,y,sw+bdw,sh+bdw);
                 XMapWindow(dis, current->win);
         }
     }
@@ -728,9 +728,9 @@ void maprequest(XEvent *e) {
                     Arg a = {.i = wspc[i].desk-1};
                     change_desktop(a);
                 }
+                update_info();
                 if(ch.res_class) XFree(ch.res_class);
                 if(ch.res_name) XFree(ch.res_name);
-                update_info();
                 return;
             }
     if(ch.res_class) XFree(ch.res_class);
