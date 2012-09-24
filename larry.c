@@ -67,7 +67,7 @@ struct client{
 
 typedef struct desktop desktop;
 struct desktop{
-    unsigned int master_size, mode, growth, numwins, nmaster;
+    unsigned int master_size, mode, growth, numwins, nmaster, showbar;
     client *head, *current, *transient;
 };
 
@@ -140,7 +140,7 @@ static Display *dis;
 static unsigned int attachaside, bdw, bool_quit, clicktofocus, current_desktop;
 static unsigned int followmouse, mode, msize, previous_desktop, DESKTOPS;
 static int growth, sh, sw, master_size, nmaster;
-static unsigned int screen, bar_height, BAR_HEIGHT, doinfo;
+static unsigned int screen, bar_height, BAR_HEIGHT, showbar, doinfo;
 static unsigned int topbar, top_stack, keycount, cmdcount, wspccount;
 static int ufalpha;
 static int xerror(Display *dis, XErrorEvent *ee);
@@ -384,6 +384,8 @@ void change_desktop(const Arg arg) {
     // Take "properties" from the new desktop
     select_desktop(arg.i);
 
+    if(bar_height > 0 && showbar == 1) toggle_bar();
+    if(bar_height < 1 && showbar == 0) toggle_bar();
     // Map all windows
     if(head != NULL)
         if(mode != 1)
@@ -438,6 +440,7 @@ void save_desktop(int i) {
     desktops[i].nmaster = nmaster;
     desktops[i].mode = mode;
     desktops[i].growth = growth;
+    desktops[i].showbar = showbar;
     desktops[i].head = head;
     desktops[i].current = current;
     desktops[i].transient = transient;
@@ -448,6 +451,7 @@ void select_desktop(int i) {
     nmaster = desktops[i].nmaster;
     mode = desktops[i].mode;
     growth = desktops[i].growth;
+    showbar = desktops[i].showbar;
     head = desktops[i].head;
     current = desktops[i].current;
     transient = desktops[i].transient;
@@ -593,9 +597,11 @@ void toggle_bar() {
         if(bar_height >0) {
             sh += bar_height;
             bar_height = 0;
+            showbar = 1;
         } else {
             bar_height = BAR_HEIGHT;
             sh -= bar_height;
+            showbar = 0;
         }
         tile();
     }
@@ -909,6 +915,7 @@ void init_desks(unsigned int ws) {
     desktops[ws].mode = mode;
     desktops[ws].growth = 0;
     desktops[ws].numwins = 0;
+    desktops[ws].showbar = 0;
     desktops[ws].head = NULL;
     desktops[ws].current = NULL;
     desktops[ws].transient = NULL;
