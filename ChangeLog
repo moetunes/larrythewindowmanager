@@ -1,3 +1,6 @@
+12/2/13
+  Don't have transient windows have input focus exclusively
+
 17/8/12
   Started from snapwm-0.6.2. Trimmed it back to have just 2 tiling
   modes, no bells and whistles but still have conf files, no config.h

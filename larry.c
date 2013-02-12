@@ -139,12 +139,10 @@ static void warp_pointer();
 static Display *dis;
 static unsigned int attachaside, bdw, bool_quit, clicktofocus, current_desktop;
 static unsigned int followmouse, mode, msize, previous_desktop, DESKTOPS;
-static int growth, sh, sw, master_size, nmaster;
+static int growth, sh, sw, master_size, nmaster, ufalpha;
 static unsigned int screen, bar_height, BAR_HEIGHT, showbar, doinfo;
 static unsigned int topbar, top_stack, keycount, cmdcount, wspccount;
-static int ufalpha;
-static int xerror(Display *dis, XErrorEvent *ee);
-static int (*xerrorxlib)(Display *, XErrorEvent *);
+static int xerror(Display *dis, XErrorEvent *ee), (*xerrorxlib)(Display *, XErrorEvent *);
 unsigned int numlockmask;        /* dynamic key lock mask */
 static Window root;
 static client *head, *current, *transient;
@@ -520,7 +518,7 @@ void update_current() {
     border = ((head->next == NULL) || (mode == 1)) ? 0 : bdw;
     for(c=head;c;c=c->next) {
         XSetWindowBorderWidth(dis,c->win,border);
-        if(c != current || transient != NULL) {
+        if(c != current) {
             if(c->order < current->order) ++c->order;
             if(ufalpha < 100) XChangeProperty(dis, c->win, alphaatom, XA_CARDINAL, 32, PropModeReplace, (unsigned char *) &opacity, 1l);
             XSetWindowBorder(dis,c->win,theme[1].wincolor);
@@ -538,10 +536,9 @@ void update_current() {
         }
     }
     current->order = 0;
-    if(transient != NULL) {
-        XSetInputFocus(dis,transient->win,RevertToParent,CurrentTime);
-        XRaiseWindow(dis,transient->win);
-    }
+    if(transient != NULL)
+        for(c=transient;c;c=c->next)
+            XRaiseWindow(dis,transient->win);
 
     XSync(dis, False);
 }
