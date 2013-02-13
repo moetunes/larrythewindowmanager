@@ -417,7 +417,7 @@ void follow_client_to_desktop(const Arg arg) {
 }
 
 void client_to_desktop(const Arg arg) {
-    if(arg.i == current_desktop || current == NULL ||arg.i >= DESKTOPS) return;
+    if(arg.i == current_desktop || current == NULL || arg.i >= DESKTOPS) return;
 
     client *tmp = current;
     unsigned int tmp2 = current_desktop;
