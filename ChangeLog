@@ -1,3 +1,7 @@
+25/2/13
+    Updated fullscreen mode to remove flicker when adding window or
+     changing focused window
+
 12/2/13
   Don't have transient windows have input focus exclusively
 

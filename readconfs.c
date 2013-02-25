@@ -12,7 +12,7 @@ void read_keys_file() {
 
     keyfile = fopen( KEY_FILE, "rb" ) ;
     if ( keyfile == NULL ) {
-        fprintf(stderr, "\033[0;34m snapwm : \033[0;31m Couldn't find %s\033[0m \n" ,KEY_FILE);
+        fprintf(stderr, "\033[0;34m larry says : \033[0;31m Couldn't find %s\033[0m \n" ,KEY_FILE);
         return;
     } else {
         while(fgets(buffer,sizeof buffer,keyfile) != NULL) {
@@ -114,7 +114,7 @@ void read_rcfile() {
 
     rcfile = fopen( RC_FILE, "rb" ) ;
     if ( rcfile == NULL ) {
-        fprintf(stderr, "\033[0;34m:: snapwm : \033[0;31m Couldn't find %s\033[0m \n" ,RC_FILE);
+        fprintf(stderr, "\033[0;34m:: larry says : \033[0;31m Couldn't find %s\033[0m \n" ,RC_FILE);
         set_defaults();
         return;
     } else {

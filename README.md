@@ -1,6 +1,6 @@
 ##larrythewindowmanager
 ### it's snapwm-light
-
+### with just vertical and fullscreen tiling modes
 Copy the two sample files to 
 
 ~/.config/larrythewindowmanager/{rc.conf,key.conf}
