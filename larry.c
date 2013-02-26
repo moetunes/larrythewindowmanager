@@ -501,10 +501,10 @@ void tile() {
             // Stack
             if(d == NULL) d = head;
             n = numwins - (nmaster+1);
-            XMoveResizeWindow(dis,d->next->win,master_size + bdw,y,sw-master_size-(2*bdw),(sh/n)+growth - bdw);
+            XMoveResizeWindow(dis,d->next->win,master_size,y,sw-master_size-bdw,(sh/n)+growth - bdw);
             y += (sh/n)+growth;
             for(c=d->next->next;c;c=c->next) {
-                XMoveResizeWindow(dis,c->win,master_size + bdw,y,sw-master_size-(2*bdw),(sh/n)-(growth/(n-1)) - bdw);
+                XMoveResizeWindow(dis,c->win,master_size,y,sw-master_size-bdw,(sh/n)-(growth/(n-1)) - bdw);
                 y += (sh/n)-(growth/(n-1));
             }
         } else { /* Fullscreen */
