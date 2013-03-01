@@ -715,7 +715,7 @@ void maprequest(XEvent *e) {
         return;
     }
 
-    if(head != NULL) w = current->win;
+    if(head != NULL) w = current->win; else w = 0;
 
     XClassHint ch = {0};
     unsigned int i=0, j=0, tmp = current_desktop;

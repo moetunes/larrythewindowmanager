@@ -1,4 +1,4 @@
-CFLAGS+= -g -std=c99 -pedantic -Wall
+CFLAGS+= -g -std=c99 -pedantic -Wall -march=i686 -mtune=generic -O2 -pipe -fstack-protector --param=ssp-buffer-size=4 -D_FORTIFY_SOURCE=2
 LDADD+= -lX11
 LDFLAGS=
 EXEC=larrythewindowmanager
@@ -14,7 +14,7 @@ OBJ = ${SRC:.c=.o}
 all: $(EXEC)
 ${EXEC}: ${OBJ}
 
-	$(CC) $(LDFLAGS) -s -O2 -ffast-math -fno-unit-at-a-time -o $@ ${OBJ} $(LDADD)
+	$(CC) $(LDFLAGS) -s -ffast-math -fno-unit-at-a-time -o $@ ${OBJ} $(LDADD)
 
 install: all
 	install -Dm 755 larrythewindowmanager $(DESTDIR)$(BINDIR)/larrythewindowmanager
