@@ -372,15 +372,6 @@ void change_desktop(const Arg arg) {
     save_desktop(current_desktop);
     previous_desktop = current_desktop;
 
-    // Unmap all window
-    if(transient != NULL)
-        for(c=transient;c;c=c->next)
-            XUnmapWindow(dis,c->win);
-
-    if(head != NULL)
-        for(c=head;c;c=c->next)
-            XUnmapWindow(dis,c->win);
-
     // Take "properties" from the new desktop
     select_desktop(arg.i);
 
@@ -391,12 +382,23 @@ void change_desktop(const Arg arg) {
         if(mode != 1)
             for(c=head;c;c=c->next)
                 XMapWindow(dis,c->win);
+    tile();
 
     if(transient != NULL)
         for(c=transient;c;c=c->next)
             XMapWindow(dis,c->win);
 
-    tile();
+    select_desktop(previous_desktop);
+    // Unmap all window
+    if(transient != NULL)
+        for(c=transient;c;c=c->next)
+            XUnmapWindow(dis,c->win);
+
+    if(head != NULL)
+        for(c=head;c;c=c->next)
+            XUnmapWindow(dis,c->win);
+
+    select_desktop(arg.i);
     warp_pointer();
     update_current();
     update_info();

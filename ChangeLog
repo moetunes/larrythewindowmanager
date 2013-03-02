@@ -1,3 +1,6 @@
+2/3/13
+  Remove flicker in fullscreen mode when changing desktops
+
 25/2/13
     Updated fullscreen mode to remove flicker when adding window or
      changing focused window
