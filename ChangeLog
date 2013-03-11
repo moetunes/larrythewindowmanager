@@ -1,3 +1,10 @@
+6/3/13
+  Remove follow mouse option to improve fullscreen mode
+
+4/3/13
+  Set the initial number of extra windows in the master area from rc.conf
+  Check for a window manager already running
+
 2/3/13
   Remove flicker in fullscreen mode when changing desktops
 

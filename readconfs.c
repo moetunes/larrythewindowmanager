@@ -111,6 +111,7 @@ void read_rcfile() {
     char dummy[80];
     char *dummy2, *dummy3;
     unsigned int i; wspccount = 0;
+    int j;
 
     rcfile = fopen( RC_FILE, "rb" ) ;
     if ( rcfile == NULL ) {
@@ -154,12 +155,20 @@ void read_rcfile() {
                 attachaside = atoi(strstr(buffer, " ")+1);
             } else if(strstr(buffer, "TOPSTACK" ) != NULL) {
                 top_stack = atoi(strstr(buffer, " ")+1);
-            } else if(strstr(buffer, "FOLLOWMOUSE" ) != NULL) {
-                followmouse = atoi(strstr(buffer, " ")+1);
             } else if(strstr(buffer, "CLICKTOFOCUS" ) != NULL) {
                 clicktofocus = atoi(strstr(buffer, " ")+1);
             } else if(strstr(buffer, "DEFAULTMODE" ) != NULL) {
                 mode = atoi(strstr(buffer, " ")+1);
+            } else if(strstr(buffer, "NMASTER" ) != NULL) {
+                strncpy(dummy, strstr(buffer, " ")+1, strlen(strstr(buffer, " ")+1)-1);
+                dummy[strlen(dummy)-1] = '\0';
+                dummy2 = strdup(dummy);
+                for(i=0;i<DESKTOPS; ++i) {
+                    j = atoi(strsep(&dummy2, ";"));
+                    if(j > -1 && j < 10) desktops[i].nmaster = j;
+                    else desktops[i].nmaster = 0;
+                    if(dummy2 == NULL) break;
+                }
             } else if(strstr(buffer, "WORKSPACE" ) != NULL) {
                 strncpy(dummy, strstr(buffer, " ")+1, strlen(strstr(buffer, " ")+1)-1);
                 dummy2 = strdup(dummy);
@@ -179,12 +188,12 @@ void read_rcfile() {
 void set_defaults() {
     unsigned int i;
 
-    logger("\033[0;32m Setting default values");
     for(i=0;i<2;++i)
         theme[i].wincolor = getcolor(defaultwincolor[i]);
 
     sh = (XDisplayHeight(dis,screen) - bdw);
     sw = XDisplayWidth(dis,screen)- bdw;
+    logger("\033[0;32m Setting default values");
     return;
 }
 
@@ -216,7 +225,7 @@ void update_config() {
         if(desktops[i].head == NULL)
             desktops[i].mode = mode;
     }
-    select_desktop(current_desktop);
+    select_desktop(tmp);
     Arg a = {.i = mode}; switch_mode(a);
     tile();
     update_current();

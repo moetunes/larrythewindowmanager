@@ -57,8 +57,7 @@ typedef struct {
 typedef struct client client;
 struct client{
     // Prev and next client
-    client *next;
-    client *prev;
+    client *next, *prev;
 
     // The window
     Window win;
@@ -92,7 +91,6 @@ static void buttonpress(XEvent *e);
 static void buttonrelease(XEvent *e);
 static void change_desktop(const Arg arg);
 static void client_to_desktop(const Arg arg);
-static void configurenotify(XEvent *e);
 static void configurerequest(XEvent *e);
 static void destroynotify(XEvent *e);
 static void follow_client_to_desktop(const Arg arg);
@@ -105,7 +103,6 @@ static void kill_client_now(Window w);
 static void last_desktop();
 static void logger(const char* e);
 static void maprequest(XEvent *e);
-static void motionnotify(XEvent *e);
 static void more_master(const Arg arg);
 static void move_down(const Arg arg);
 static void move_up(const Arg arg);
@@ -133,12 +130,11 @@ static void unmapnotify(XEvent *e);    // Thunderbird's write window just unmaps
 static void update_config();
 static void update_current();
 static void update_info();
-static void warp_pointer();
 
 // Variable
 static Display *dis;
 static unsigned int attachaside, bdw, bool_quit, clicktofocus, current_desktop, numwins;
-static unsigned int followmouse, mode, msize, previous_desktop, DESKTOPS;
+static unsigned int mode, msize, previous_desktop, DESKTOPS;
 static int growth, sh, sw, master_size, nmaster, ufalpha;
 static unsigned int screen, bar_height, BAR_HEIGHT, showbar, doinfo;
 static unsigned int topbar, top_stack, keycount, cmdcount, wspccount;
@@ -157,14 +153,12 @@ static void (*events[LASTEvent])(XEvent *e) = {
     [MapRequest] = maprequest,
     [UnmapNotify] = unmapnotify,
     [ButtonPress] = buttonpress,
-    [MotionNotify] = motionnotify,
     [ButtonRelease] = buttonrelease,
     [DestroyNotify] = destroynotify,
-    [ConfigureNotify] = configurenotify,
     [ConfigureRequest] = configurerequest
 };
 
-// Desktop array
+// Arrays
 static desktop desktops[10];
 static Theme theme[2];
 static key keys[100];
@@ -213,12 +207,8 @@ void add_window(Window w, int tw) {
     } else head = dummy;
     current = c;
     numwins += 1;
-    if(growth > 0) growth = growth*(numwins-1)/numwins;
-    else growth = 0;
+    growth = (growth > 0) ? growth*(numwins-1)/numwins:0;
     save_desktop(current_desktop);
-    // for folow mouse 
-    if(followmouse == 0)
-        XSelectInput(dis, c->win, PointerMotionMask);
 }
 
 void remove_window(Window w, unsigned int dr, unsigned int tw) {
@@ -258,54 +248,41 @@ void remove_window(Window w, unsigned int dr, unsigned int tw) {
             }
         } else current = NULL;
         if(dr == 0) free(c);
-        if(numwins < 3) growth = 0;
-        else growth = growth*(numwins-1)/numwins;
+        growth = (numwins < 3) ? 0:growth*(numwins-1)/numwins;
         if(nmaster > 0 && nmaster == (numwins-1)) nmaster -= 1;
         save_desktop(current_desktop);
         tile();
-        warp_pointer();
         update_current();
         return;
     }
 }
 
 void next_win() {
-    client *c; Window w = current->win;
-
     if(numwins < 2) return;
+    client *c;
+
     c = (current->next == NULL) ? head : current->next;
     current = c;
     save_desktop(current_desktop);
-    if(mode == 1) {
-        tile();
-        XUnmapWindow(dis, w);
-    }
     update_current();
-    warp_pointer();
 }
 
 void prev_win() {
-    client *c; Window w = current->win;
-
     if(numwins < 2) return;
+    client *c;
+
     if(current->prev == NULL) for(c=head;c->next;c=c->next);
     else c = current->prev;
     current = c;
     save_desktop(current_desktop);
-    if(mode == 1) {
-        tile();
-        XUnmapWindow(dis, w);
-    }
     update_current();
-    warp_pointer();
 }
 
 void move_down(const Arg arg) {
-    Window tmp;
     if(current == NULL || current->next == NULL || current->win == head->win || current->prev == NULL)
         return;
 
-    tmp = current->win;
+    Window tmp = current->win;
     current->win = current->next->win;
     current->next->win = tmp;
     //keep the moved window activated
@@ -316,11 +293,10 @@ void move_down(const Arg arg) {
 }
 
 void move_up(const Arg arg) {
-    Window tmp;
-    if(current == NULL || current->prev == head || current->win == head->win) {
+    if(current == NULL || current->prev == head || current->win == head->win)
         return;
-    }
-    tmp = current->win;
+
+    Window tmp = current->win;
     current->win = current->prev->win;
     current->prev->win = tmp;
     prev_win();
@@ -329,6 +305,7 @@ void move_up(const Arg arg) {
 }
 
 void swap_master() {
+    if(numwins < 2) return;
     Window tmp;
 
     if(head->next != NULL && current != NULL && mode != 1) {
@@ -344,7 +321,6 @@ void swap_master() {
         }
         save_desktop(current_desktop);
         tile();
-        warp_pointer();
         update_current();
     }
 }
@@ -375,13 +351,11 @@ void change_desktop(const Arg arg) {
     // Take "properties" from the new desktop
     select_desktop(arg.i);
 
-    if(bar_height > 0 && showbar == 1) toggle_bar();
-    if(bar_height < 1 && showbar == 0) toggle_bar();
+    if((bar_height > 0 && showbar == 1) || (bar_height < 1 && showbar == 0)) toggle_bar();
     // Map all windows
     if(head != NULL)
-        if(mode != 1)
-            for(c=head;c;c=c->next)
-                XMapWindow(dis,c->win);
+        for(c=head;c;c=c->next)
+            XMapWindow(dis,c->win);
     tile();
 
     if(transient != NULL)
@@ -399,7 +373,6 @@ void change_desktop(const Arg arg) {
             XUnmapWindow(dis,c->win);
 
     select_desktop(arg.i);
-    warp_pointer();
     update_current();
     update_info();
 }
@@ -472,37 +445,35 @@ void more_master (const Arg arg) {
     }
     save_desktop(current_desktop);
     tile();
-    //update_current();
 }
 
 void tile() {
     if(head == NULL) return;
     client *c, *d=NULL;
     unsigned int x = 0, ypos=0;
-    int y = 0, n = 0;
+    int y = 0, n = 0, nm = (numwins < 3) ? 0: (numwins-2 < nmaster) ? (numwins-2):nmaster;
 
     // For a top bar
     y = (bar_height > 0 && topbar == 0) ? bar_height : 0; ypos = y;
 
     // If only one window
     if(head != NULL && head->next == NULL) {
-        if(mode == 1) XMapWindow(dis, current->win);
         XMoveResizeWindow(dis,head->win,0,y,sw+bdw,sh+bdw);
     } else {
         if(mode == 0) { /* Vertical */
             // Master window
-            if(nmaster < 1)
+            if(nm < 1)
                 XMoveResizeWindow(dis,head->win,0,y,master_size - bdw,sh - bdw);
             else {
                 for(d=head;d;d=d->next) {
-                    XMoveResizeWindow(dis,d->win,0,ypos,master_size - bdw,sh/(nmaster+1) - bdw);
-                    if(x == nmaster) break;
-                    ypos += sh/(nmaster+1); ++x;
+                    XMoveResizeWindow(dis,d->win,0,ypos,master_size - bdw,sh/(nm+1) - bdw);
+                    if(x == nm) break;
+                    ypos += sh/(nm+1); ++x;
                 }
             }
             // Stack
             if(d == NULL) d = head;
-            n = numwins - (nmaster+1);
+            n = numwins - (nm+1);
             XMoveResizeWindow(dis,d->next->win,master_size,y,sw-master_size-bdw,(sh/n)+growth - bdw);
             y += (sh/n)+growth;
             for(c=d->next->next;c;c=c->next) {
@@ -510,17 +481,17 @@ void tile() {
                 y += (sh/n)-(growth/(n-1));
             }
         } else { /* Fullscreen */
-                XMoveResizeWindow(dis,current->win,0,y,sw+bdw,sh+bdw);
-                XMapWindow(dis, current->win);
+                for(c=head;c;c=c->next)
+                    XMoveResizeWindow(dis,c->win,0,y,sw+bdw,sh+bdw);
         }
     }
 }
 
 void update_current() {
+    if(head == NULL) return;
     client *c; unsigned int border;
     unsigned long opacity = (ufalpha/100.00) * 0xffffffff;
 
-    if(head == NULL) return;
     border = ((head->next == NULL) || (mode == 1)) ? 0 : bdw;
     for(c=head;c;c=c->next) {
         XSetWindowBorderWidth(dis,c->win,border);
@@ -550,22 +521,9 @@ void update_current() {
 }
 
 void switch_mode(const Arg arg) {
-    client *c;
-
     if(mode == arg.i) return;
-    growth = 0;
-    if(mode == 1 && head != NULL) {
-        XUnmapWindow(dis, current->win);
-        for(c=head;c;c=c->next)
-            XMapWindow(dis, c->win);
-    }
 
     mode = arg.i;
-    master_size = (sw*msize)/100;
-    if(mode == 1 && head != NULL)
-        for(c=head;c;c=c->next)
-            XUnmapWindow(dis, c->win);
-
     save_desktop(current_desktop);
     tile();
     update_current();
@@ -581,7 +539,7 @@ void resize_master(const Arg arg) {
 }
 
 void resize_stack(const Arg arg) {
-    if(numwins > 2) {
+    if(numwins > 2 || mode != 1) {
         int n = numwins-1;
         if(arg.i > 0) {
             if(sh-(growth+sh/n) > (n-1)*70)
@@ -593,7 +551,6 @@ void resize_stack(const Arg arg) {
         tile();
     }
 }
-
 
 void toggle_bar() {
     if(BAR_HEIGHT > 0) {
@@ -622,8 +579,8 @@ void grabkeys() {
     // numlock workaround
     numlockmask = 0;
     modmap = XGetModifierMapping(dis);
-    for (i = 0; i < 8; ++i) {
-        for (j = 0; j < modmap->max_keypermod; ++j) {
+    for (i=0;i<8;++i) {
+        for (j=0;j<modmap->max_keypermod;++j) {
             if(modmap->modifiermap[i * modmap->max_keypermod + j] == XKeysymToKeycode(dis, XK_Num_Lock))
                 numlockmask = (1 << i);
         }
@@ -638,12 +595,10 @@ void grabkeys() {
         XGrabKey(dis, code, keys[i].mod | numlockmask, root, True, GrabModeAsync, GrabModeAsync);
         XGrabKey(dis, code, keys[i].mod | numlockmask | LockMask, root, True, GrabModeAsync, GrabModeAsync);
     }
-    for(i=1;i<4;i+=2) {
-        XGrabButton(dis, i, Mod1Mask, root, True, ButtonPressMask, GrabModeAsync, GrabModeAsync, None, None);
-        XGrabButton(dis, i, Mod1Mask | LockMask, root, True, ButtonPressMask, GrabModeAsync, GrabModeAsync, None, None);
-        XGrabButton(dis, i, Mod1Mask | numlockmask, root, True, ButtonPressMask, GrabModeAsync, GrabModeAsync, None, None);
-        XGrabButton(dis, i, Mod1Mask | numlockmask | LockMask, root, True, ButtonPressMask, GrabModeAsync, GrabModeAsync, None, None);
-    }
+    XGrabButton(dis, 1, Mod1Mask, root, True, ButtonPressMask, GrabModeAsync, GrabModeAsync, None, None);
+    XGrabButton(dis, 1, Mod1Mask | LockMask, root, True, ButtonPressMask, GrabModeAsync, GrabModeAsync, None, None);
+    XGrabButton(dis, 1, Mod1Mask | numlockmask, root, True, ButtonPressMask, GrabModeAsync, GrabModeAsync, None, None);
+    XGrabButton(dis, 1, Mod1Mask | numlockmask | LockMask, root, True, ButtonPressMask, GrabModeAsync, GrabModeAsync, None, None);
 }
 
 void keypress(XEvent *e) {
@@ -652,24 +607,10 @@ void keypress(XEvent *e) {
     XKeyEvent *ev = &e->xkey;
 
     keysym = XkbKeycodeToKeysym(dis, (KeyCode)ev->keycode, 0, 0);
-    for(i = 0; i < keycount; ++i) {
-        if(keysym == XStringToKeysym(keys[i].keysym) && CLEANMASK(keys[i].mod) == CLEANMASK(ev->state)) {
+    for(i = 0; i < keycount; ++i)
+        if(keysym == XStringToKeysym(keys[i].keysym) && CLEANMASK(keys[i].mod) == CLEANMASK(ev->state))
             if(keys[i].myfunction)
                 keys[i].myfunction(keys[i].arg);
-        }
-    }
-}
-
-void warp_pointer() {
-    // Move cursor to the center of the current window
-    if(followmouse != 0) return;
-    XGetWindowAttributes(dis, current->win, &attr);
-    XWarpPointer(dis, None, current->win, 0, 0, 0, 0, attr.width/2, attr.height/2);
-    return;
-}
-
-void configurenotify(XEvent *e) {
-    // Do nothing for the moment
 }
 
 /* ********************** Signal Management ************************** */
@@ -697,7 +638,7 @@ void maprequest(XEvent *e) {
 
     int y = (bar_height > 0 && topbar == 0) ? bar_height : 0;
     // For fullscreen mplayer (and maybe some other program)
-    client *c; Window w;
+    client *c;
     for(c=head;c;c=c->next)
         if(ev->window == c->win) {
             XMapWindow(dis,ev->window);
@@ -717,8 +658,6 @@ void maprequest(XEvent *e) {
         return;
     }
 
-    if(head != NULL) w = current->win; else w = 0;
-
     XClassHint ch = {0};
     unsigned int i=0, j=0, tmp = current_desktop;
     if(XGetClassHint(dis, ev->window, &ch))
@@ -733,7 +672,6 @@ void maprequest(XEvent *e) {
                 if(tmp == wspc[i].desk-1) {
                     tile();
                     XMapWindow(dis, ev->window);
-                    if(mode == 1 && numwins > 1) XUnmapWindow(dis, w);
                     update_current();
                 } else select_desktop(tmp);
                 if(wspc[i].follow < 1) {
@@ -750,9 +688,7 @@ void maprequest(XEvent *e) {
 
     add_window(ev->window, 0);
     tile();
-    if(mode == 1 && numwins > 1) XUnmapWindow(dis, w);
-    if(mode != 1) XMapWindow(dis,ev->window);
-    warp_pointer();
+    XMapWindow(dis, ev->window);
     update_current();
     update_info();
 }
@@ -789,6 +725,11 @@ void buttonpress(XEvent *e) {
     client *c;
 
     // change focus with LMB
+    for(c=transient;c;c=c->next)
+        if(ev->window == c->win) {
+            XSetInputFocus(dis,ev->window,RevertToParent,CurrentTime);
+            return;
+        }
     if(clicktofocus == 0 && ev->window != current->win && ev->button == Button1)
         for(c=head;c;c=c->next) {
             if(ev->window == c->win) {
@@ -801,20 +742,6 @@ void buttonpress(XEvent *e) {
         }
 }
 
-void motionnotify(XEvent *e) {
-    client *c;
-    XMotionEvent *ev = &e->xmotion;
-
-    if(ev->window != current->win) {
-        for(c=head;c;c=c->next)
-           if(ev->window == c->win) {
-                current = c;
-                update_current();
-                return;
-           }
-    }
-}
-
 void buttonrelease(XEvent *e) {
     XSendEvent(dis, PointerWindow, False, 0xfff, e);
     XFlush(dis);
@@ -823,7 +750,6 @@ void buttonrelease(XEvent *e) {
 
 void unmapnotify(XEvent *e) { // for thunderbird's write window and maybe others
     XUnmapEvent *ev = &e->xunmap;
-    unsigned int i = 0, tmp = current_desktop;
     client *c;
 
     if(ev->send_event == 1) {
@@ -831,22 +757,15 @@ void unmapnotify(XEvent *e) { // for thunderbird's write window and maybe others
             for(c=transient;c;c=c->next)
                 if(ev->window == c->win) {
                     remove_window(ev->window, 1, 1);
-                    select_desktop(tmp);
                     return;
                 }
         }
-        save_desktop(tmp);
-        for(i=0;i<TABLENGTH(desktops);++i) {
-            select_desktop(i);
-            for(c=head;c;c=c->next)
-                if(ev->window == c->win) {
-                    remove_window(ev->window, 1, 0);
-                    select_desktop(tmp);
-                    update_info();
-                    return;
-                }
-        }
-        select_desktop(tmp);
+        for(c=head;c;c=c->next)
+            if(ev->window == c->win) {
+                remove_window(ev->window, 1, 0);
+                update_info();
+                return;
+            }
     }
 }
 
@@ -890,7 +809,7 @@ void quit() {
     logger("\033[0;34mYou Quit : Bye!");
     XClearWindow(dis, root);
     XUngrabKey(dis, AnyKey, AnyModifier, root);
-    for(i=0;i<7;++i)
+    for(i=0;i<3;++i)
         XFreeGC(dis, theme[i].gc);
     XSync(dis, False);
     XSetInputFocus(dis, root, RevertToPointerRoot, CurrentTime);
@@ -914,7 +833,7 @@ void logger(const char* e) {
 
 void init_desks(unsigned int ws) {
     desktops[ws].master_size = master_size;
-    desktops[ws].nmaster = 0;
+    if(!(desktops[ws].nmaster)) desktops[ws].nmaster = nmaster;
     desktops[ws].mode = mode;
     desktops[ws].growth = 0;
     desktops[ws].numwins = 0;
@@ -937,8 +856,8 @@ void setup() {
     msize = 55;
     ufalpha = 75;
     bdw = 2;
-    attachaside = followmouse = 1;
-    clicktofocus = mode = top_stack = 0;
+    attachaside = 1;
+    clicktofocus = mode = top_stack = nmaster = 0;
     topbar = BAR_HEIGHT = bar_height = doinfo = 0;
 
     char *loc;
@@ -958,7 +877,7 @@ void setup() {
     bool_quit = 0;
 
     // Master size
-    master_size = (mode == 2) ? (sh*msize)/100 : (sw*msize)/100;
+    master_size = (sw*msize)/100;
 
     // Set up all desktop
     unsigned int i;
@@ -975,7 +894,7 @@ void setup() {
 
     // To catch maprequest and destroynotify (if other wm running)
     XSelectInput(dis,root,SubstructureNotifyMask|SubstructureRedirectMask);
-    XSetErrorHandler(xerror);
+
     logger("\033[0;32mWe're up and running!");
     update_info();
 }
@@ -1010,7 +929,10 @@ int xerror(Display *dis, XErrorEvent *ee) {
     || (ee->request_code == X_GrabKey && ee->error_code == BadAccess)
     || (ee->request_code == X_CopyArea && ee->error_code == BadDrawable))
         return 0;
-    logger("\033[0;31mBad Window Error!");
+    if(ee->error_code == BadAccess) {
+        logger("\033[0;31mIs Another Window Manager Running? Exiting!");
+        exit(1);
+    } else logger("\033[0;31mBad Window Error!");
     return xerrorxlib(dis, ee); /* may call exit */
 }
 
@@ -1030,6 +952,8 @@ int main() {
         logger("\033[0;31mCannot open display!");
         exit(1);
     }
+
+    XSetErrorHandler(xerror);
 
     // Setup env
     setup();
