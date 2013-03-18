@@ -249,7 +249,6 @@ void remove_window(Window w, unsigned int dr, unsigned int tw) {
         } else current = NULL;
         if(dr == 0) free(c);
         growth = (numwins < 3) ? 0:growth*(numwins-1)/numwins;
-        if(nmaster > 0 && nmaster == (numwins-1)) nmaster -= 1;
         save_desktop(current_desktop);
         tile();
         update_current();

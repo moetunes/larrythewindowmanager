@@ -1,8 +1,12 @@
+11/3/13
+  Don't decrement nmaster on window removal
+
 6/3/13
   Remove follow mouse option to improve fullscreen mode
 
 4/3/13
-  Set the initial number of extra windows in the master area from rc.conf
+  Set the initial number of extra windows in the master
+   area from rc.conf
   Check for a window manager already running
 
 2/3/13
