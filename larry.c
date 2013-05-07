@@ -661,7 +661,8 @@ void maprequest(XEvent *e) {
     unsigned int i=0, j=0, tmp = current_desktop;
     if(XGetClassHint(dis, ev->window, &ch))
         for(i=0;i<wspccount;++i)
-            if(strcmp(ch.res_class, wspc[i].class) == 0) {
+            if((strcmp(ch.res_class, wspc[i].class) == 0) ||
+              (strcmp(ch.res_name, wspc[i].class) == 0)) {
                 save_desktop(tmp);
                 select_desktop(wspc[i].desk-1);
                 for(c=head;c;c=c->next)

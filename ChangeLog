@@ -1,3 +1,6 @@
+8/5/13
+  Added ability to set workspace an app opens by name
+
 11/3/13
   Don't decrement nmaster on window removal
 
