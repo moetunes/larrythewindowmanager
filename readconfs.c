@@ -61,11 +61,11 @@ void read_keys_file() {
                     keys[keycount].arg.i = atoi(strsep(&dummy2, ";"));
                 } else if(strcmp(dummy3, "move_down") == 0) {
                     keys[keycount].myfunction = move_down;
-                    keys[keycount].arg.i = atoi(strsep(&dummy2, ";"));
+                    //keys[keycount].arg.i = atoi(strsep(&dummy2, ";"));
                 } else if(strcmp(dummy3, "move_up") == 0) {
                     keys[keycount].myfunction = move_up;
-                    keys[keycount].arg.i = atoi(strsep(&dummy2, ";"));
-                    keys[keycount].arg.i = atoi(strsep(&dummy2, ";"));
+                    //keys[keycount].arg.i = atoi(strsep(&dummy2, ";"));
+                    //keys[keycount].arg.i = atoi(strsep(&dummy2, ";"));
                 } else if(strcmp(dummy3, "switch_mode") == 0) {
                     keys[keycount].myfunction = switch_mode;
                     keys[keycount].arg.i = atoi(strsep(&dummy2, ";"));

@@ -104,8 +104,8 @@ static void last_desktop();
 static void logger(const char* e);
 static void maprequest(XEvent *e);
 static void more_master(const Arg arg);
-static void move_down(const Arg arg);
-static void move_up(const Arg arg);
+static void move_down();
+static void move_up();
 static void next_win();
 static void prev_win();
 static void quit();
@@ -277,7 +277,7 @@ void prev_win() {
     update_current();
 }
 
-void move_down(const Arg arg) {
+void move_down() {
     if(current == NULL || current->next == NULL || current->win == head->win || current->prev == NULL)
         return;
 
@@ -291,7 +291,7 @@ void move_down(const Arg arg) {
     tile();
 }
 
-void move_up(const Arg arg) {
+void move_up() {
     if(current == NULL || current->prev == head || current->win == head->win)
         return;
 
