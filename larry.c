@@ -488,33 +488,37 @@ void tile() {
 
 void update_current() {
     if(head == NULL) return;
-    client *c; unsigned int border;
+    client *c, *d; unsigned int border;
     unsigned long opacity = (ufalpha/100.00) * 0xffffffff;
 
     border = ((head->next == NULL) || (mode == 1)) ? 0 : bdw;
-    for(c=head;c;c=c->next) {
-        XSetWindowBorderWidth(dis,c->win,border);
-        if(c != current) {
-            if(c->order < current->order) ++c->order;
-            if(ufalpha < 100) XChangeProperty(dis, c->win, alphaatom, XA_CARDINAL, 32, PropModeReplace, (unsigned char *) &opacity, 1l);
-            XSetWindowBorder(dis,c->win,theme[1].wincolor);
+    for(c=head;c->next;c=c->next);
+    for(d=c;d;d=d->prev) {
+        XSetWindowBorderWidth(dis,d->win,border);
+        if(d != current) {
+            if(d->order < current->order) ++d->order;
+            if(ufalpha < 100) XChangeProperty(dis, d->win, alphaatom, XA_CARDINAL, 32, PropModeReplace, (unsigned char *) &opacity, 1l);
+            XSetWindowBorder(dis,d->win,theme[1].wincolor);
             if(clicktofocus == 0)
-                XGrabButton(dis, AnyButton, AnyModifier, c->win, True, ButtonPressMask|ButtonReleaseMask, GrabModeAsync, GrabModeAsync, None, None);
+                XGrabButton(dis, AnyButton, AnyModifier, d->win, True, ButtonPressMask|ButtonReleaseMask, GrabModeAsync, GrabModeAsync, None, None);
         }
         else {
             // "Enable" current window
-            if(ufalpha < 100) XDeleteProperty(dis, c->win, alphaatom);
-            XSetWindowBorder(dis,c->win,theme[0].wincolor);
-            XSetInputFocus(dis,c->win,RevertToParent,CurrentTime);
-            XRaiseWindow(dis,c->win);
+            if(ufalpha < 100) XDeleteProperty(dis, d->win, alphaatom);
+            XSetWindowBorder(dis,d->win,theme[0].wincolor);
+            XSetInputFocus(dis,d->win,RevertToParent,CurrentTime);
+            XRaiseWindow(dis,d->win);
             if(clicktofocus == 0)
-                XUngrabButton(dis, AnyButton, AnyModifier, c->win);
+                XUngrabButton(dis, AnyButton, AnyModifier, d->win);
         }
     }
     current->order = 0;
-    if(transient != NULL)
-        for(c=transient;c;c=c->next)
-            XRaiseWindow(dis,transient->win);
+    if(transient != NULL) {
+        for(c=transient;c->next;c=c->next);
+        for(d=c;d;d=d->prev)
+            XRaiseWindow(dis,d->win);
+        XSetInputFocus(dis,transient->win,RevertToParent,CurrentTime);
+    }
 
     XSync(dis, False);
 }
