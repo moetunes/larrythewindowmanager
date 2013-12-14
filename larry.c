@@ -479,9 +479,14 @@ void tile() {
                 XMoveResizeWindow(dis,c->win,master_size,y,sw-master_size-bdw,(sh/n)-(growth/(n-1)) - bdw);
                 y += (sh/n)-(growth/(n-1));
             }
-        } else { /* Fullscreen */
+        } else if(mode == 1) { /* Fullscreen */
                 for(c=head;c;c=c->next)
                     XMoveResizeWindow(dis,c->win,0,y,sw+bdw,sh+bdw);
+        } else { /* Colomns */
+            for(c=head;c;c=c->next) {
+                XMoveResizeWindow(dis,c->win,n,y,(sw/numwins)-bdw,sh-bdw);
+                n += sw/numwins;
+            }
         }
     }
 }
